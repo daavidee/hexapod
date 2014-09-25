@@ -1,5 +1,5 @@
 <h2>About</h2>
-	This project is based around Python and the <a href="http://en.wikipedia.org/wiki/Raspberry_Pi">Raspberry Pi</a>, a credit-card sized computer with GPIO, USB, 10/100 Ethernet and more. It is a 6-legged (hexapod) robot with 3 degrees of freedom per leg. Currently it can walk, interface with a PS3 controller, stream 1080p30 video with minimal cpu load and can talk via a TTS engine and on-board speaker. Ultrasonic sensing for object detection, face recognition using the camera and <a href="http://opencv.org/">OpenCV</a>, crude position mapping using an accelerometer and full integration of all features are planned.
+This project is based around Python and the <a href="http://en.wikipedia.org/wiki/Raspberry_Pi">Raspberry Pi</a>, a credit-card sized computer with GPIO, USB, 10/100 Ethernet and more. It is a 6-legged (hexapod) robot with 3 degrees of freedom per leg. Currently it can walk, interface with a PS3 controller, stream 1080p30 video with minimal cpu load and can talk via a TTS engine and on-board speaker. Ultrasonic sensing for object detection, face recognition using the camera and <a href="http://opencv.org/">OpenCV</a>, crude position mapping using an accelerometer and full integration of all features are planned.
 
 <h2>Hardware</h2>
 	<ul>
@@ -27,7 +27,7 @@
 	</ul>
 
 <h2>Software Requirements</h2>
-	The following modules should be installed using apt-get after installing <a href="http://www.raspbian.org/">Raspbian</a> on the Raspberry Pi:
+The following modules should be installed using apt-get after installing <a href="http://www.raspbian.org/">Raspbian</a> on the Raspberry Pi:
 	<ul>
 		<li>Python</li>
 		<li><a href="http://www.festvox.org/flite/">flite</a> tts engine</li>
