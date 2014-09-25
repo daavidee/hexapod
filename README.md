@@ -2,29 +2,29 @@
 This project is based around Python and the <a href="http://en.wikipedia.org/wiki/Raspberry_Pi">Raspberry Pi</a>, a credit-card sized computer with GPIO, USB, 10/100 Ethernet and more. It is a 6-legged (hexapod) robot with 3 degrees of freedom per leg. Currently it can walk, interface with a PS3 controller, stream 1080p30 video with minimal cpu load and can talk via a TTS engine and on-board speaker. Ultrasonic sensing for object detection, face recognition using the camera and <a href="http://opencv.org/">OpenCV</a>, crude position mapping using an accelerometer and full integration of all features are planned.
 
 <h2>Hardware</h2>
-	<ul>
-		<li>1 x <a href="http://en.wikipedia.org/wiki/Raspberry_Pi">Model B Raspberry Pi</a></li>
-		<li>1 x 32GB SD Card (not included with the Pi)</li>
-		<li>1 x Low-power USB wifi module used for connection to a home network</li>
-		<li>1 x Low-power USB bluetooth module used for connection to the PS3 controller</li>
-		<li>2 x <a href="http://www.adafruit.com/products/815">16-Channel 12-bit PWM Drivers</a> used for control of the servo PWM signals. This is based on the <a href="http://www.nxp.com/documents/data_sheet/PCA9685.pdf">PCA9685</a> which has its own internal clock. Each driver controls one side of the robot for a total of 9 servos controlled per driver</li>
-		<li>19 x High Torque <a href="http://www.hobbyking.com/hobbyking/store/__28972__H_King_High_Torque_Metal_Geared_Ball_Bearing_Waterproof_Servo_58g_12_8kg_cm_0_22s_60.html">analog servos</a></li>
-		<li>1 x <a href="http://www.hobbyking.com/hobbyking/store/__9172__Turnigy_5000mAh_2S_20C_Lipo_Pack.html">2s1p Lipo Battery Pack</a></li>
-		<li>1 x <a href="http://www.hobbyking.com/hobbyking/store/__10312__Turnigy_5A_8_26v_SBEC_for_Lipo.html">5A SBEC</a> for converting the 8.4V from the Lipo Battery to 5V for the Pi</li>
-		<li>1 x <a href="http://www.hobbyking.com/hobbyking/store/__40274__Hobbyking_YEP_20A_HV_2_12S_SBEC_w_Selectable_Voltage_Output.html">20A SBEC</a> for converting the 8.4V from the Lipo Battery to 6V for the servos</li>
-		<li>2 x (1/8" x 1.5" x 48") aluminum flats bought from Home Depot and cut with a scroll saw for the legs. The frame is made from salvaged aluminum</li>
-		<li>1 x <a href="http://www.adafruit.com/products/1367">CSI Camera</a></li>
-		<li>1 x Audio amplifier. A <a href="http://www.electronicaestudio.com/docs/VMA2012.pdf">VMA2012 amplifier</a> was used</li>
-		<li>1 x Generic 0.4W 8Ohm Speaker</li>
-		<li>1 x 12V fuse and holder. A 20A 32V fuse was used</li>
-		<li>1 x 12V Toggle switch</li>
-		<li>1 x <a href="http://www.hobbyking.com/hobbyking/store/__18987__On_Board_Lipoly_Low_Voltage_Alarm_2s_4s_.html">Lipo low voltage alarm</a></li>
-		<li>1 x Solderless breadboard for prototyping purposes</li>
-		<li>1 x <a href="http://www.adafruit.com/products/914">Pi breakout</a> for easy interfacing to a breadboard</li>
-		<li>2 x <a href="http://www.atmel.com/Images/doc8161.pdf">Atmega328P</a> programmed with Arduino-compatible bootloader. (Currently unused)</li>
-		<li>1 x <a href="http://media.digikey.com/pdf/Data%20Sheets/Bosch/BMA180_Flyer.pdf">BMA180 Accelerometer module.</a> (Currently unused)</li>
-		<li>1 x <a href="https://docs.google.com/document/d/1Y-yZnNhMYy7rwhAgyL_pfa39RsB-x2qR4vP8saG73rE/edit">HC-SR04 Ultrasonic Module.</a> (Currently unused)</li>
-	</ul>
+<ul>
+	<li>1 x <a href="http://en.wikipedia.org/wiki/Raspberry_Pi">Model B Raspberry Pi</a></li>
+	<li>1 x 32GB SD Card (not included with the Pi)</li>
+	<li>1 x Low-power USB wifi module used for connection to a home network</li>
+	<li>1 x Low-power USB bluetooth module used for connection to the PS3 controller</li>
+	<li>2 x <a href="http://www.adafruit.com/products/815">16-Channel 12-bit PWM Drivers</a> used for control of the servo PWM signals. This is based on the <a href="http://www.nxp.com/documents/data_sheet/PCA9685.pdf">PCA9685</a> which has its own internal clock. Each driver controls one side of the robot for a total of 9 servos controlled per driver</li>
+	<li>19 x High Torque <a href="http://www.hobbyking.com/hobbyking/store/__28972__H_King_High_Torque_Metal_Geared_Ball_Bearing_Waterproof_Servo_58g_12_8kg_cm_0_22s_60.html">analog servos</a></li>
+	<li>1 x <a href="http://www.hobbyking.com/hobbyking/store/__9172__Turnigy_5000mAh_2S_20C_Lipo_Pack.html">2s1p Lipo Battery Pack</a></li>
+	<li>1 x <a href="http://www.hobbyking.com/hobbyking/store/__10312__Turnigy_5A_8_26v_SBEC_for_Lipo.html">5A SBEC</a> for converting the 8.4V from the Lipo Battery to 5V for the Pi</li>
+	<li>1 x <a href="http://www.hobbyking.com/hobbyking/store/__40274__Hobbyking_YEP_20A_HV_2_12S_SBEC_w_Selectable_Voltage_Output.html">20A SBEC</a> for converting the 8.4V from the Lipo Battery to 6V for the servos</li>
+	<li>2 x (1/8" x 1.5" x 48") aluminum flats bought from Home Depot and cut with a scroll saw for the legs. The frame is made from salvaged aluminum</li>
+	<li>1 x <a href="http://www.adafruit.com/products/1367">CSI Camera</a></li>
+	<li>1 x Audio amplifier. A <a href="http://www.electronicaestudio.com/docs/VMA2012.pdf">VMA2012 amplifier</a> was used</li>
+	<li>1 x Generic 0.4W 8Ohm Speaker</li>
+	<li>1 x 12V fuse and holder. A 20A 32V fuse was used</li>
+	<li>1 x 12V Toggle switch</li>
+	<li>1 x <a href="http://www.hobbyking.com/hobbyking/store/__18987__On_Board_Lipoly_Low_Voltage_Alarm_2s_4s_.html">Lipo low voltage alarm</a></li>
+	<li>1 x Solderless breadboard for prototyping purposes</li>
+	<li>1 x <a href="http://www.adafruit.com/products/914">Pi breakout</a> for easy interfacing to a breadboard</li>
+	<li>2 x <a href="http://www.atmel.com/Images/doc8161.pdf">Atmega328P</a> programmed with Arduino-compatible bootloader. (Currently unused)</li>
+	<li>1 x <a href="http://media.digikey.com/pdf/Data%20Sheets/Bosch/BMA180_Flyer.pdf">BMA180 Accelerometer module.</a> (Currently unused)</li>
+	<li>1 x <a href="https://docs.google.com/document/d/1Y-yZnNhMYy7rwhAgyL_pfa39RsB-x2qR4vP8saG73rE/edit">HC-SR04 Ultrasonic Module.</a> (Currently unused)</li>
+</ul>
 
 <h2>Software Requirements</h2>
 The following modules should be installed using apt-get after installing <a href="http://www.raspbian.org/">Raspbian</a> on the Raspberry Pi:
