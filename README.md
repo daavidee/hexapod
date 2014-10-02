@@ -5,7 +5,7 @@ This project is based around Python and the <a href="http://en.wikipedia.org/wik
 <h2>Hardware</h2>
 <ul>
 	<li>1 x <a href="http://en.wikipedia.org/wiki/Raspberry_Pi">Model B Raspberry Pi</a></li>
-	<li>1 x 32GB SD Card (not included with the Pi)</li>
+	<li>1 x 4GB or bigger SD Card</li>
 	<li>1 x Low-power USB wifi module used for connection to a home network</li>
 	<li>1 x Low-power USB bluetooth module used for connection to the PS3 controller</li>
 	<li>2 x <a href="http://www.adafruit.com/products/815">16-Channel 12-bit PWM Drivers</a> used for control of the servo PWM signals. This is based on the <a href="http://www.nxp.com/documents/data_sheet/PCA9685.pdf">PCA9685</a> which has its own internal clock. Each driver controls one side of the robot for a total of 9 servos controlled per driver</li>
