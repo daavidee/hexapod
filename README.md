@@ -40,6 +40,6 @@ The <a href="https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code/tree/
 
 <h2>Notes</h2>
 <ul>
-	<li>Since Raspbian is not a RTOS, Atmega328Ps are used to offload the ultrasonic sensing and position mapping for more reliable measurements</li>
+	<li>An Atmega328P is used to offload the ultrasonic sensing for reliable measurements</li>
 	<li>Most of the parts can be ordered from <a href="http://www.adafruit.com">Adafruit</a> and <a href="http://www.hobbyking.com">Hobbyking</a></li>
 </ul>
