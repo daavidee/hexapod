@@ -1,6 +1,6 @@
 <h1>Note: This project is a work in progress.</h1>
 <h2>About</h2>
-This project is based around Python and the <a href="http://en.wikipedia.org/wiki/Raspberry_Pi">Raspberry Pi</a>. It is a 6-legged (hexapod) robot with 3 degrees of freedom per leg. Currently it can walk, interface with a PS3 controller, stream 1080p30 video with minimal cpu load and talk via a TTS engine and on-board speaker. Ultrasonic sensing for object detection, facial recognition using the camera with <a href="http://opencv.org/">OpenCV</a>, full integration of all features and more are underway.
+This project is based around Python and the <a href="http://en.wikipedia.org/wiki/Raspberry_Pi">Raspberry Pi</a>. It is a 6-legged (hexapod) robot with 3 degrees of freedom per leg. Currently it can walk linearly, interface with a PS3 controller, stream 1080p30 video, talk via flite and an on-board speaker, sense objects with an ultrasonic sensor and collect acceleration data. Facial recognition using the camera with <a href="http://opencv.org/">OpenCV</a>, full integration of all features and more are underway.
 
 <h2>Hardware</h2>
 <ul>
@@ -22,9 +22,9 @@ This project is based around Python and the <a href="http://en.wikipedia.org/wik
 	<li>1 x <a href="http://www.hobbyking.com/hobbyking/store/__18987__On_Board_Lipoly_Low_Voltage_Alarm_2s_4s_.html">Lipo low voltage alarm</a></li>
 	<li>1 x Solderless breadboard for prototyping purposes</li>
 	<li>1 x <a href="http://www.adafruit.com/products/914">Pi breakout</a> for easy interfacing to a breadboard</li>
-	<li>2 x <a href="http://www.atmel.com/Images/doc8161.pdf">Atmega328P</a> programmed with Arduino-compatible bootloader. (Currently unused)</li>
-	<li>1 x <a href="http://media.digikey.com/pdf/Data%20Sheets/Bosch/BMA180_Flyer.pdf">BMA180 Accelerometer module.</a> (Currently unused)</li>
-	<li>1 x <a href="https://docs.google.com/document/d/1Y-yZnNhMYy7rwhAgyL_pfa39RsB-x2qR4vP8saG73rE/edit">HC-SR04 Ultrasonic Module.</a> (Currently unused)</li>
+	<li>2 x <a href="http://www.atmel.com/Images/doc8161.pdf">Atmega328P</a></li>
+	<li>1 x <a href="http://media.digikey.com/pdf/Data%20Sheets/Bosch/BMA180_Flyer.pdf">BMA180 Accelerometer module.</a></li>
+	<li>1 x <a href="https://docs.google.com/document/d/1Y-yZnNhMYy7rwhAgyL_pfa39RsB-x2qR4vP8saG73rE/edit">HC-SR04 Ultrasonic Module.</a></li>
 </ul>
 
 <h2>Software Requirements</h2>
