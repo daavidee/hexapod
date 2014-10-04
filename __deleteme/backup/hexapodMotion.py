@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from __future__ import division
 from Adafruit_PWM_Servo_Driver import PWM 
 from scipy.optimize import fsolve
@@ -5,7 +7,7 @@ import time
 import sys
 import math
 
-# math functions converted to degrees
+# math functions, angles in degrees
 def sin(angle):
 	return math.sin(math.radians(angle))
 
@@ -19,44 +21,42 @@ def tan(angle):
 	return math.tan(math.radians(angle))
 
 	
+#### these shouldn't change
+
 # mechanical parameters in cm (between rotational points)
 coxaFemurLen = 1.7
 femurLen = 8.0
 tibiaLen = 12.5
 
-# global absolute limits for servo travel
+# absolute limits for servo travel
 minPulseLen = 170 # Min pulse length out of 4096 (time HIGH) 
 maxPulseLen = 580 # Max pulse length out of 4096 (time HIGH) 
+servoMaxAngle = 150 # degrees subtended from minPulseLen to maxPulseLen 
 
-# coxa positive movement ccw from top view (0 point with leg perpendicular to body)
-# femur positive movement ccw from rearview (0 point parallel to floor)
-# tibia positive movement ccw from rearview (0 point when right angle to femur)
-# leg 1 is the rear right leg (view from rear). leg number increasing ccw
-
-# servo calibration values. order: minPulseLen, maxPulseLen, degrees at minPulseLen, degrees at maxPulseLen, degress offset
-servoParameters = { 
-	"coxa1": [376, 255, 0, 45, 0],
-	"coxa2": [353, 255, 0, 40, 0],
-	"coxa3": [365, 255, 0, 43, 0],
-	"coxa4": [360, 455, 0, 29, 0],
-	"coxa5": [401, 475, 0, 25, 0],
-	"coxa6": [365, 475, 0, 35, 0],
-	"femur1": [369, 575, 0, 75, 3],
-	"femur2": [351, 568, 0, 77, 4],
-	"femur3": [386, 192, 0, 73, 0],
-	"femur4": [392, 580, 0, 67, 2],
-	"femur5": [380, 180, 0, 75, 0],
-	"femur6": [382, 170, 0, 69, 0],
-	"tibia1": [340, 452, 0, 39, 0],
-	"tibia2": [340, 237, 0, 39, 0],
-	"tibia3": [359, 257, 0, 39, 0],
-	"tibia4": [380, 496, 0, 39, 0],
-	"tibia5": [347, 455, 0, 39, 0],
-	"tibia6": [367, 271, 0, 39, 0]
+# servo pulse length offsets
+servoOffsets = { 
+	"coxa1": 0,
+	"coxa2": 20,
+	"coxa3": 10,
+	"coxa4": -15,
+	"coxa5": 30,
+	"coxa6": -5,
+	"femur1": -10,
+	"femur2": -20,
+	"femur3": 15,
+	"femur4": -25,
+	"femur5": -10,
+	"femur6": -5,
+	"tibia1": -30,
+	"tibia2": 25,
+	"tibia3": 20,
+	"tibia4": 10,
+	"tibia5": -25,
+	"tibia6": 10,
 }
 
-# legs 1-3 on pwmR, 4-6 on pwmL
-servoChans = {
+# leg 1 is the rear right leg (view from rear). leg number increasing ccw
+servoChans = { 
 	"coxa1": 0,
 	"coxa2": 3,
 	"coxa3": 11,
@@ -77,24 +77,43 @@ servoChans = {
 	"tibia6": 13,
 }
 
-# calculate servo pulse length for a desired angle. assume servo pulseLen is linear wrt angle
-#calculate slope and y-intercept and do it that way. linear between the 2 points in servoParameters
+# coxa positive movement ccw from top view (0 point with leg perpendicular to body), femur positive movement ccw from rearview (0 point parallel to floor), tibia positive movement ccw from rearview (0 point when right angle to femur)
+servoMultipliers = { 
+	"coxa1": -1,
+	"coxa2": -1,
+	"coxa3": -1,
+	"coxa4": 1,
+	"coxa5": 1,
+	"coxa6": 1,
+	"femur1": 1,
+	"femur2": 1,
+	"femur3": -1,
+	"femur4": 1,
+	"femur5": -1,
+	"femur6": -1,
+	"tibia1": 1,
+	"tibia2": -1,
+	"tibia3": -1,
+	"tibia4": 1,
+	"tibia5": 1,
+	"tibia6": -1,
+}
+
+# servo functions
 def getPulseLenFromAngle(legSection, angle):
-	totalSteps = servoParameters[legSection][1] - servoParameters[legSection][0]
-	totalAngle = servoParameters[legSection][3] - servoParameters[legSection][2]
-	slope = totalSteps / totalAngle
-	intercept = servoParameters[legSection][0] - slope * servoParameters[legSection][2]
-	pulseLen = slope * (angle + servoParameters[legSection][4]) + intercept
+	zeroDegPt = (minPulseLen + maxPulseLen) / 2
+	diff = maxPulseLen - zeroDegPt
+	pulseLen = zeroDegPt + servoMultipliers[legSection] * (diff * angle / (servoMaxAngle / 2) + servoOffsets[legSection])
 	return int(round(pulseLen, 0))
 
 class hexapodMotion:
 
 	# initial parameters (i.e. while standing and default walking position)
-	femurStandStartAngle = 30
-	tibiaStandStartAngle = -25
+	femurStandStartAngle = 20
+	tibiaStandStartAngle = -20
 	coxaStandStartAngle	= 0
 
-	walkResolution = 60 # number of steps for one full walk cycle
+	walkResolution = 60 # number of steps for one full cycle
 	coxaWalkSweepAngle = 20 # half of the total sweep angle
 
 	def __init__(self):
@@ -121,8 +140,7 @@ class hexapodMotion:
 			pwm.setPWM(servoChan, 0, pulseLen)
 		else:
 			print "servo " + legSection + " told to go to an out of range pos: " + str(pulseLen)
-	
-	# mainly for debugging	
+			
 	def moveServoToPos(self, legSection, pulseLen):
 		servoChan = servoChans[legSection]
 		legNum = int(legSection[-1:])
@@ -134,34 +152,30 @@ class hexapodMotion:
 			pwm.setPWM(servoChan, 0, pulseLen)
 	
 
+		
 	# walk supporting functions
 
 	# vertical distance of tibia tip to femur/coxa pivot point (robot height)
 	def calcHeight(self, femurAngle, tibiaAngle):
 		return tibiaLen * cos(femurAngle + tibiaAngle) - femurLen * sin(femurAngle)
 
-	# horizontal distance from tibia point on floor to femur pivot point. height is the vertical distance of tibia tip to femur/coxa pivot point
+	# horizontal distance from tibia point on floor to femur pivot point. height = vertical distance of tibia tip to femur/coxa pivot point
 	def calcWidth(self, height, femurAngle, tibiaAngle):
 		return femurLen * cos(tibiaAngle) / cos(femurAngle + tibiaAngle) + height * tan(femurAngle + tibiaAngle)
 
 	# when coxa angle changes during walking, these are the femur and tibia angles to maintain robot height and position of tibia tip on floor without slipping
 	def tibiaFemurWalkAngles(self, coxaAngle):
-		# make this less cpu intensive, or just use an approximation like before
-		'''
 		d = self.initialWidth / cos(coxaAngle)
 		def f(x):
 			eqns = [tibiaLen*cos(x[0]+x[1]) - femurLen*sin(x[0]) - self.robotHeight]
 			eqns.append(-d + femurLen*cos(x[1])/cos(x[0]+x[1]) + self.robotHeight*tan(x[0]+x[1]))
 			return eqns
 			
-		f_roots = fsolve(f, [self.femurStandStartAngle, self.tibiaStandStartAngle], xtol = 0.5) # initial guesses are just the initial values
+		f_roots = fsolve(f, [self.femurStandStartAngle, self.tibiaStandStartAngle], xtol = 1) # initial guesses are just the initial values
 		return f_roots
-		'''
-		return [self.femurStandStartAngle, self.tibiaStandStartAngle]
 
-	# degrees offset in the walk parameter loop for fluid leg movement
-	def walkLegOffset(self, leg):
-		leg = int(leg)
+	# degrees offset in the parameter loop for fluid leg movement while walking
+	def coxaWalkLegOffset(self, leg):
 		if leg == 1:   return -240
 		elif leg == 2: return -120
 		elif leg == 3: return 0
@@ -170,21 +184,21 @@ class hexapodMotion:
 		elif leg == 6: return -180
 
 		
-	# angles during walking
+	# angle of coxa during walking.
 	def walkServoAngles(self, leg, x):
 		angles = {}
-		interval = 360/self.walkResolution
-		walkAngle = x * interval + self.walkLegOffset(leg)
+		interval = 360/walkResolution
+		coxaServoAngle = coxaWalkSweepAngle * sin(x * interval + coxaWalkLegOffset(leg))
+		walkAngle = x * interval + coxaWalkLegOffset(leg)
 		if 90 < walkAngle % 360 < 270: 		# tibia in contact with ground
-			angles["coxa"] = self.coxaWalkSweepAngle * sin(walkAngle)
-			FTAngles = self.tibiaFemurWalkAngles(angles["coxa"])
+			angles["coxa"] = coxaWalkSweepAngle * sin(walkAngle)
+			FTAngles = self.tibiaFemurWalkAngles(coxaAngle)
 			angles["femur"] = FTAngles[0]
 			angles["tibia"] = FTAngles[1]
 			
 		else:								# tibia not in contact with ground
-			angles["coxa"] = self.coxaWalkSweepAngle * sin(180 + walkAngle)
+			angles["coxa"] = coxaWalkSweepAngle * sin(180 + walkAngle)
 			angles["femur"] = self.femurStandStartAngle + 20
-			angles["tibia"] = self.tibiaStandStartAngle
 		
 		return angles
 
@@ -212,7 +226,7 @@ class hexapodMotion:
 			leg = str(i)
 			
 			# get the angles
-			angles = self.walkServoAngles(leg, x)
+			angles = self.walkServoAngles(leg, x, direction)
 			
 			# move the servos
 			self.moveServoToAngle("coxa" + leg, angles["coxa"])
@@ -221,12 +235,13 @@ class hexapodMotion:
 		print time.time() - t1
 		
 	def testServoOffsets(self):
-		self.moveServoToPos("tibia3", 257)
+		# 170, 580, 375
+		self.moveServoToPos("femur4", 400)
 		#self.pwmR.setPWM(12, 0, 580)
 		#self.pwmL.setPWM(3, 0, 170)
 		
 		for i in range(1, 7):
 			self.moveServoToAngle("coxa" + str(i), 0)
-			#self.moveServoToAngle("femur" + str(i), 50)
-			#self.moveServoToAngle("tibia" + str(i), 40)
+			#self.moveServoToAngle("femur" + str(i), 45)
+			#self.moveServoToAngle("tibia" + str(i), 20)
 		
