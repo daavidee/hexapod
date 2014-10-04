@@ -36,7 +36,7 @@ The following modules should be installed using apt-get after installing <a href
 		<li><a href="http://www.pygame.org">Pygame </a></li>
 		<li>Sixpair for pairing the PS3 controller to the bluetooth module and the <a href="http://qtsixa.sourceforge.net/">sixad</a> driver. <a href="http://booting-rpi.blogspot.ro/2012/08/dualshock-3-and-raspberry-pi.html">This</a> tutorial may be helpful. You may need to modify the sixad sourcecode as described <a href="http://www.raspberrypi.org/forums/viewtopic.php?f=78&t=16702&sid=1f1d82acca88f4ace5195643900b1123&start=29">here</a> in order for the controller to work.</li>
 	</ul>
-The <a href="https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code/tree/master/Adafruit_PWM_Servo_Driver">Adafruit_PWM_Servo_Driver</a> library is included in the source and is used for low-level control of the <a href="http://www.nxp.com/documents/data_sheet/PCA9685.pdf">PCA9685</a> chip via the I2C bus. A sixAxis wrapper library I wrote is also included for ease of use.
+A sixAxis wrapper library I wrote is included to easily facilitate the use of the controller. The <a href="https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code/tree/master/Adafruit_PWM_Servo_Driver">Adafruit_PWM_Servo_Driver</a> library is also included and is used for low-level control of the <a href="http://www.nxp.com/documents/data_sheet/PCA9685.pdf">PCA9685</a> chip via the I2C bus.
 
 <h2>Notes</h2>
 <ul>
