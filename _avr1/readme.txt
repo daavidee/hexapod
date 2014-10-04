@@ -1,6 +1,6 @@
-Interfaces the hr-sr04 ultrasonic sensor with an ATmega328P and the Raspberry Pi through the i2c bus
+Interfaces the hc-sr04 ultrasonic sensor with an ATmega328P and the Raspberry Pi through the i2c bus
 
-To use flash the sketch to a suitable AVR (I used avrdude and linuxspi with my raspberry pi as an ISP) and test using ping_test.py
+To use flash the sketch to a suitable AVR (I used avrdude and linuxspi with my raspberry pi as an ISP) and test importing the ping_test.py
 
 notes:
 -power the avr with 3.3v so 5v doesn't go back to the pi through the i2c pins
