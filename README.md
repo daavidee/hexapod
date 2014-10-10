@@ -1,6 +1,6 @@
 <h1>Note: This project is a work in progress.</h1>
 <h2>About</h2>
-This project is based around Python and the <a href="http://en.wikipedia.org/wiki/Raspberry_Pi">Raspberry Pi</a>. It is a 6-legged (hexapod) robot with 3 degrees of freedom per leg. Currently it can walk linearly, interface with a PS3 controller, stream 1080p30 video, talk via flite and an on-board speaker, sense objects with an ultrasonic sensor offloaded to an ATmega328P and collect acceleration data. Facial recognition using the camera with <a href="http://opencv.org/">OpenCV</a>, full integration of all features and more are underway.
+This project is based around Python and the <a href="http://en.wikipedia.org/wiki/Raspberry_Pi">Raspberry Pi</a>, a credit-card sized computer with GPIO, USB, 10/100 Ethernet and more. It is a 6-legged (hexapod) robot with 3 degrees of freedom per leg. Currently it can walk linearly, be controlled with a PS3 controller, stream 1080p30 video, talk via flite and an on-board speaker, detect objects with an ultrasonic sensor and collect acceleration data. Rotational movement, object recognition using the camera with <a href="http://opencv.org/">OpenCV</a>, full integration of all features and more are underway.</p>
 
 <h2>Hardware</h2>
 <ul>
@@ -36,10 +36,18 @@ The following modules should be installed using apt-get after installing <a href
 		<li><a href="http://www.pygame.org">Pygame </a></li>
 		<li>Sixpair for pairing the PS3 controller to the bluetooth module and the <a href="http://qtsixa.sourceforge.net/">sixad</a> driver. <a href="http://booting-rpi.blogspot.ro/2012/08/dualshock-3-and-raspberry-pi.html">This</a> tutorial may be helpful. You may need to modify the sixad sourcecode and recompile as described <a href="http://www.raspberrypi.org/forums/viewtopic.php?f=78&t=16702&sid=1f1d82acca88f4ace5195643900b1123&start=29">here</a> in order for the controller to work.</li>
 	</ul>
-A sixAxis wrapper library I wrote is included to easily facilitate the use of the controller. The <a href="https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code/tree/master/Adafruit_PWM_Servo_Driver">Adafruit_PWM_Servo_Driver</a> library is also included and is used for low-level control of the <a href="http://www.nxp.com/documents/data_sheet/PCA9685.pdf">PCA9685</a> chip via the I2C bus.
+	<p>You can then clone the repository</p>
+	
+	<p>I've included my <a href="https://github.com/davide-P/sixAxis">sixAxis wrapper library</a> and <a href="https://github.com/davide-P/hcsr04"> hcsr04</a> library to facilitate the addition of a ps3 and ultrasonic sensor to the robot.</p>
+	
+	<p>The <a href="https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code/tree/master/Adafruit_PWM_Servo_Driver">Adafruit_PWM_Servo_Driver</a> library is also included in the source and is used for low-level control of the <a href="http://www.nxp.com/documents/data_sheet/PCA9685.pdf">PCA9685</a> chip via the I2C bus. The NewPing and RunningMedian libraries were also used in the arduino sketch for interfacing the ultrasonic sensor.</p>
 
 <h2>Notes</h2>
 <ul>
-	<li>An Atmega328P is used to offload the ultrasonic sensing for reliable measurements</li>
+	<li>The Atmega328P is currently used to offload the ultrasonic sensing for reliable measurements</li>
 	<li>Most of the parts can be ordered from <a href="http://www.adafruit.com">Adafruit</a> and <a href="http://www.hobbyking.com">Hobbyking</a></li>
 </ul>
+
+
+<h2>Demo</h2>
+<p>Check out my <a href="https://www.youtube.com/user/davidepalozzi">YouTube channel</a> for videos of the robot in action.</p>
