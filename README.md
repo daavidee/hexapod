@@ -36,11 +36,12 @@ The following modules should be installed using apt-get after installing <a href
 		<li><a href="http://www.pygame.org">Pygame </a></li>
 		<li>Sixpair for pairing the PS3 controller to the bluetooth module and the <a href="http://qtsixa.sourceforge.net/">sixad</a> driver. <a href="http://booting-rpi.blogspot.ro/2012/08/dualshock-3-and-raspberry-pi.html">This</a> tutorial may be helpful. You may need to modify the sixad sourcecode and recompile as described <a href="http://www.raspberrypi.org/forums/viewtopic.php?f=78&t=16702&sid=1f1d82acca88f4ace5195643900b1123&start=29">here</a> in order for the controller to work.</li>
 	</ul>
-	You can then clone the repository.
+
+You can then clone the repository.
 	
-	I've included my <a href="https://github.com/davide-P/sixAxis">sixAxis wrapper library</a> and <a href="https://github.com/davide-P/hcsr04"> hcsr04</a> library to facilitate the addition of a ps3 and ultrasonic sensor to the robot.
+I've included my <a href="https://github.com/davide-P/sixAxis">sixAxis wrapper library</a> and <a href="https://github.com/davide-P/hcsr04"> hcsr04</a> library to facilitate the addition of a ps3 and ultrasonic sensor to the robot.
 	
-	The <a href="https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code/tree/master/Adafruit_PWM_Servo_Driver">Adafruit_PWM_Servo_Driver</a> library is also included in the source and is used for low-level control of the <a href="http://www.nxp.com/documents/data_sheet/PCA9685.pdf">PCA9685</a> chip via the I2C bus. The NewPing and RunningMedian libraries were also used in the arduino sketch for interfacing the ultrasonic sensor.
+The <a href="https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code/tree/master/Adafruit_PWM_Servo_Driver">Adafruit_PWM_Servo_Driver</a> library is also included in the source and is used for low-level control of the <a href="http://www.nxp.com/documents/data_sheet/PCA9685.pdf">PCA9685</a> chip via the I2C bus. The NewPing and RunningMedian libraries were also used in the arduino sketch for interfacing the ultrasonic sensor.
 
 <h2>Notes</h2>
 <ul>
