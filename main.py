@@ -7,7 +7,7 @@ import os
 # initialize classes
 hexapod = hexapodMotion()
 sixAxis = sixAxis()
-hcsr04 = hcsr04(1, 4) # i2c bus #1 and i2c device address 0x04. this connects to the ATmega328P
+hcsr04 = hcsr04(1, 4) # i2c bus #1 and i2c device address 0x04. this will communicate to the ATmega328P
 
 
 # vars used in follow-mode
@@ -18,14 +18,13 @@ followDistance = maxFollowDistance / 2 # the follow-mode distance to maintain
 followModeWalkSpeed = 0.3 # value between 0-1 to affect the speed, higher being faster
 
 
-# tmp variable to move the ping servo
+# tmp variable to move the servo-mounted ultrasonic sensor
 pingServoValue = 350
 
 
 # supporting functions
 
-
-# modify the follow-mode ping distance to maintain. this changes based on dpad presses
+# modify the follow-mode ping distance to maintain. this changes based on dpad up/down presses
 def calcfollowDistance(direction):
 	global followDistance
 	if direction == 1 and followDistance < maxFollowDistance: followDistance += 1
@@ -44,7 +43,7 @@ time.sleep(0.2)
 
 # debugging
 #hexapod.walkSpeed = 0.3
-#hexapod.testMode = True
+hexapod.testMode = True
 
 # main loop
 while True:
@@ -78,7 +77,8 @@ while True:
 				hexapod.walkSpeed = 0
 			
 		
-		if buttonName == 'r3_vertical' and bFollowModeEnabled == False: hexapod.walkSpeed = events[buttonName]['axisValue']
+		if buttonName == 'r3_vertical' and bFollowModeEnabled == False: 
+			hexapod.walkSpeed = events[buttonName]['axisValue']
 		
 		
 	# check if follow-mode is enabled
@@ -86,11 +86,9 @@ while True:
 		objectDistance = hcsr04.getPingDistance()
 		print objectDistance
 		if objectDistance - followDistance > 5:
-			print "walking forward"
 			hexapod.walkSpeed = followModeWalkSpeed 
 			hexapod.walk()
 		if objectDistance - followDistance < -5:
-			print "walking backward"
 			hexapod.walkSpeed = -followModeWalkSpeed 
 			hexapod.walk()
 	else:
