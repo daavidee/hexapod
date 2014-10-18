@@ -1,8 +1,13 @@
+#!/usr/bin/env python
+
 import time
+from common import *
 from hexapodMotion import hexapodMotion
 from sixAxis import sixAxis
 from hcsr04 import hcsr04
-import os
+
+
+log("Starting main loop")
 
 # initialize classes
 hexapod = hexapodMotion()
@@ -18,8 +23,8 @@ followDistance = maxFollowDistance / 2 # the follow-mode distance to maintain
 followModeWalkSpeed = 0.3 # value between 0-1 to affect the speed, higher being faster
 
 
-# tmp variable to move the servo-mounted ultrasonic sensor
-pingServoValue = 350
+# tmp variable holding the pulseLen for the servo mounted to the ultrasonic sensor
+pingServoPulseLen = 350
 
 
 # supporting functions
@@ -33,8 +38,7 @@ def calcfollowDistance(direction):
 
 # stand up
 hexapod.stand()
-print "hexapod standing up"
-time.sleep(1)
+log("hexapod standing up")
 
 
 # begin pinging. interval is determined in sixAxis class. defaults to 200ms
@@ -57,15 +61,15 @@ while True:
 			calcfollowDistance(-1)
 			print followDistance
 		if buttonName == 'dpad_left':
-			pingServoValue += 5
-			hexapod.pwmL.setPWM(1, 0, pingServoValue)
-			print pingServoValue
+			pingServoPulseLen += 5
+			hexapod.pwmL.setPWM(1, 0, pingServoPulseLen)
+			print pingServoPulseLen
 		if buttonName == 'dpad_right':
-			pingServoValue -= 5
-			hexapod.pwmL.setPWM(1, 0, pingServoValue)
-			print pingServoValue
+			pingServoPulseLen -= 5
+			hexapod.pwmL.setPWM(1, 0, pingServoPulseLen)
+			print pingServoPulseLen
 		if buttonName == 'start':
-			os.system('flite -voice kalit -t "i am ah robot"&')
+			say("i am ah robot")
 		if buttonName == 'select':		
 			bFollowModeEnabled = not bFollowModeEnabled
 			# in follow mode, make it walk at a specific speed
@@ -75,8 +79,6 @@ while True:
 			else:
 				print "follow mode disabled"
 				hexapod.walkSpeed = 0
-			
-		
 		if buttonName == 'r3_vertical' and bFollowModeEnabled == False: 
 			hexapod.walkSpeed = events[buttonName]['axisValue']
 		
@@ -85,11 +87,12 @@ while True:
 	if bFollowModeEnabled == True:
 		objectDistance = hcsr04.getPingDistance()
 		print objectDistance
-		if objectDistance - followDistance > 5:
+		if objectDistance - followDistance > 3:
 			hexapod.walkSpeed = followModeWalkSpeed 
-			hexapod.walk()
-		if objectDistance - followDistance < -5:
-			hexapod.walkSpeed = -followModeWalkSpeed 
-			hexapod.walk()
-	else:
-			hexapod.walk()
+		elif objectDistance - followDistance < -3:
+			hexapod.walkSpeed = -followModeWalkSpeed
+		else:
+			hexapod.walkSpeed = 0
+			
+	# walk. currently the sleep timer to throttle execution is located in the walk function itself
+	hexapod.walk()

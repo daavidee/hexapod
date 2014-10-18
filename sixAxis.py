@@ -1,7 +1,8 @@
-# A wrapper library written to easily interface a sixAxis (ps3) controller to a system with pygame installed
+#!/usr/bin/env python
 
 import pygame
 import time
+from common import *
 
 class sixAxis:
 	connected = False
@@ -18,11 +19,11 @@ class sixAxis:
 			name = pygame.joystick.Joystick(i).get_name()
 			if (name.find(searchStr) != -1):
 				pygame.joystick.Joystick(i).init()
-				print pygame.joystick.Joystick(i).get_name() + " initialized"
+				log(pygame.joystick.Joystick(i).get_name() + " initialized")
 				self.connected = True
 				return
 		# no sixAxis controller can be found
-		print errorStr
+		log(errorStr)
 		pygame.joystick.quit()
 	
 	# button map
