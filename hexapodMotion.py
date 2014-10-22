@@ -8,7 +8,7 @@ import time
 import math
 import thread
 
-# some trig functions converted to degrees (not used when performance is needed). will experiment by quantizing angle values and creating a LUT or using an approximate version in future
+# some trig functions converted to degrees (not used when performance is needed)
 def sin(angle):
 	return math.sin(math.radians(angle))
 
