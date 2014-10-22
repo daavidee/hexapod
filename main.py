@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 
-import time
 from common import *
+log("Starting imports")
+
+import time
 from hexapodMotion import hexapodMotion
 from sixAxis import sixAxis
 from hcsr04 import hcsr04
 
+log("Initializing classes...")
 
-log("Starting main loop")
-
-# initialize classes
 hexapod = hexapodMotion()
 sixAxis = sixAxis()
-hcsr04 = hcsr04(1, 4) # i2c bus #1 and i2c device address 0x04. this will communicate to the ATmega328P
+hcsr04 = hcsr04(0x01, 0x04) # i2c bus #1 and i2c device address 0x04. this will communicate to the ATmega328P
 
 
 # vars used in follow-mode
@@ -36,21 +36,26 @@ def calcfollowDistance(direction):
 	elif direction == -1 and followDistance > minFollowDistance: followDistance -= 1
 
 
+# debugging
+#hexapod.walkSpeed = 0.3
+hexapod.testMode = True	
+	
+
 # stand up
+log("Hexapod standing up")
 hexapod.stand()
-log("hexapod standing up")
 
 
+log("Beginning interval pinging")
 # begin pinging. interval is determined in sixAxis class. defaults to 200ms
 hcsr04.beginIntervalPinging()
 time.sleep(0.2)
 
-# debugging
-#hexapod.walkSpeed = 0.3
-hexapod.testMode = True
 
+log("Ready for input")
 # main loop
 while True:
+	
 	# monitor for buttonpresses on sixaxis
 	events = sixAxis.getEvents()
 	for buttonName in events:
@@ -82,7 +87,7 @@ while True:
 		if buttonName == 'r3_vertical' and bFollowModeEnabled == False: 
 			hexapod.walkSpeed = events[buttonName]['axisValue']
 		
-		
+	
 	# check if follow-mode is enabled
 	if bFollowModeEnabled == True:
 		objectDistance = hcsr04.getPingDistance()

@@ -11,7 +11,7 @@ class hcsr04:
 	def __init__(self, busAddress, i2cAddress):
 		self.bus = smbus.SMBus(busAddress) # bus address.. 0 or 1. use i2cdetect to find out
 		self.address = i2cAddress # address of the micro
-		log("initialized connection to ATmega328P at address " + str(self.address) + " on i2c bus number " + str(busAddress))
+		log("initialized connection to ATmega328P at address " + hex(self.address) + " on i2c bus number " + hex(busAddress))
 	def ping(self):
 		try:
 			self.bus.write_byte_data(self.address, 1, 10) # write to register 1 the value 10 to start a ping. data is unused and can be anything

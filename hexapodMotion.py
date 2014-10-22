@@ -2,13 +2,13 @@
 
 from __future__ import division
 from Adafruit_PWM_Servo_Driver import PWM
-from scipy.optimize import fsolve
+import scipy.optimize
 from common import *
 import time 
 import math
 import thread
 
-# math functions converted to degrees
+# some trig functions converted to degrees (not used when performance is needed). will experiment by quantizing angle values and creating a LUT or using an approximate version in future
 def sin(angle):
 	return math.sin(math.radians(angle))
 
@@ -97,10 +97,13 @@ def getPulseLenFromAngle(legSection, angle):
 	return int(round(pulseLen, 0))
 
 class hexapodMotion:
-
+	# when this is enabled, servos will not be moved
 	testMode = False
+	
+	currentServoAngles = {
+	}
 
-	# allows or disallows changing of leg angles. this is to prevent femur going down when coxa is repositioning itself after end of powerstroke
+	# allows or disallows changing of leg angles. this is to prevent femur going down when coxa is repositioning itself after end of powerstroke and to prevent neddless recalculation
 	legCommandLock = {
 		'1': False,
 		'2': False,
@@ -109,7 +112,7 @@ class hexapodMotion:
 		'5': False,
 		'6': False
 	}
-
+	
 	# initial parameters (i.e. while standing and default walking position)
 	femurStandStartAngle = 20
 	tibiaStandStartAngle = -10
@@ -121,12 +124,11 @@ class hexapodMotion:
 	
 	walkResolution = 60 # number of steps for one full walk cycle. some of these are technically "skipped" when repositioning for powerstroke
 	stepAngle = 360 / walkResolution # degrees in each small step in the cycle
-	coxaWalkSweepAngle = 27 # half of the total sweep angle for each leg
+	coxaWalkSweepAngle = 25 # half of the total sweep angle for each leg
 	
 
-	# servo takes 0.22s to go 60 degrees @ 6V so guarantee femur is in air for legCommandLockTime seconds. max walkspeed depends on this value
-	servoMaxSpeed = 60/0.22 # deg/sec
-	legCommandLockTime = (2 * coxaWalkSweepAngle) / servoMaxSpeed + 0.1
+	# servo takes 0.22s to go 60 degrees @ 6V. self.walkSpeed depends on this value
+	servoMaxSpeed = 60/0.35 # deg/sec. the actual servo speed depends on the angle difference it is commanded to move. for now will just pad it
 	stepTimeInterval = 0.001 # the minimum interval in seconds between successive walk, rotation etc. commands. a multiplier for this is calculated based on walkSpeed 
 	
 	
@@ -163,13 +165,13 @@ class hexapodMotion:
 			
 		
 	# the initial offsets in the walk angle between legs
-	def generateLegWalkOffsets(self, outObj):
-		outObj['1'] = -240
-		outObj['2'] = -120
-		outObj['3'] = 0
-		outObj['4'] = -180
-		outObj['5'] = -300
-		outObj['6'] = -60
+	def generateLegWalkOffsets(self, legWalkAngles):
+		legWalkAngles['1'] = 120
+		legWalkAngles['2'] = 240
+		legWalkAngles['3'] = 0
+		legWalkAngles['4'] = 180
+		legWalkAngles['5'] = 60
+		legWalkAngles['6'] = 300
 		
 	def moveServoToAngle(self, legSection, angle):
 		servoChan = servoChans[legSection]
@@ -181,7 +183,8 @@ class hexapodMotion:
 			pwm = self.pwmL
 		if minPulseLen <= pulseLen <= maxPulseLen:
 			#print "servo " + legSection + " told to go to pos: " + str(pulseLen)
-			pwm.setPWM(servoChan, 0, pulseLen)
+			if self.testMode == False: pwm.setPWM(servoChan, 0, pulseLen)
+			self.currentServoAngles[legSection] = angle
 		else:
 			log("servo " + legSection + " told to go to an out of range pos: " + str(pulseLen))
 	
@@ -194,9 +197,10 @@ class hexapodMotion:
 		if self.walkSpeed == 0: return 0
 		if self.walkSpeed > 0: return 1
 	
-	# modify the walking speed based on float input -1 to 1, i.e. from the right (r3) analog stick.
+	# modify the walking speed based on float input -1 to 1, i.e. from the right (r3) analog stick
 	def stepIntervalMultiplier(self):
-		minTimeInterval = self.legCommandLockTime / self.walkResolution # the minimum delay between commanded steps, dependent on servo speed
+		maxLegCommandLockTime = 2 * self.coxaWalkSweepAngle / self.servoMaxSpeed
+		minTimeInterval = maxLegCommandLockTime / self.walkResolution # the minimum delay between commanded steps, dependent on servo speed
 		
 		minScale = int(minTimeInterval / self.stepTimeInterval) + 5 # min scale value. don't want to send commands too fast
 		maxScale = 80 # max scale value. set so robot has a reasonable minimum speed
@@ -219,19 +223,17 @@ class hexapodMotion:
 
 	
 	# lookup cache to prevent needless recalculation of tibia and femur angles (very costly!)
-	def putTibiaFemurWalkAnglesInCache(self, leg, coxaAngle, angles):
-		if leg not in self.tibiaFemurWalkAnglesCache: self.tibiaFemurWalkAnglesCache[leg] = {}
-		if coxaAngle not in self.tibiaFemurWalkAnglesCache[leg]: self.tibiaFemurWalkAnglesCache[leg][coxaAngle] = {}
-		self.tibiaFemurWalkAnglesCache[leg][coxaAngle] = angles
+	def putTibiaFemurWalkAnglesInCache(self, coxaAngle, angles):
+		if coxaAngle not in self.tibiaFemurWalkAnglesCache: self.tibiaFemurWalkAnglesCache[coxaAngle] = {}
+		self.tibiaFemurWalkAnglesCache[coxaAngle] = angles
 	
-	# perform a servoAngles cache lookup
-	def getTibiaFemurWalkAnglesInCache(self, leg, coxaAngle):
-		if leg not in self.tibiaFemurWalkAnglesCache or coxaAngle not in self.tibiaFemurWalkAnglesCache[leg]: return ["error"]
-		else: return self.tibiaFemurWalkAnglesCache[leg][coxaAngle]
+	# perform a tibiaFemurWalkAnglesCache cache lookup
+	def getTibiaFemurWalkAnglesInCache(self, coxaAngle):
+		if coxaAngle not in self.tibiaFemurWalkAnglesCache: return ["error"]
+		else: return self.tibiaFemurWalkAnglesCache[coxaAngle]
 		
 	# will calculate all angles at once instead of realtime so that it doesn't slow down the speed and repeat calculations needlessly
 	def createTibiaFemurWalkAnglesCache(self):
-	
 		t = time.time()
 		log("Generating tibia and femur walk angles cache...")
 		
@@ -251,12 +253,9 @@ class hexapodMotion:
 		#print self.tibiaFemurWalkAnglesCache
 		log("Generated tibia and femur walk angles cache in " + str(time.time() - t) + " seconds")
 		
-		
-	
-	# when coxa angle changes during walking, these are the femur and tibia angles to maintain robot height and position of tibia tip on floor without slipping
+	# when coxa angle changes during walking, these are the femur and tibia angles to maintain constant robot height and position of tibia tip on floor without slipping
 	def tibiaFemurWalkAngles(self, leg, coxaAngle):
-	
-		# because only legs 2 and 5 have tibias in line with the femur pivot, these offsets are needed to fudge the math for the other legs which are offset...will fix later
+		# because only legs 2 and 5 have tibias in line with the femur pivot, these offsets are needed to "fudge" the math for the other legs which are offset...will adjust later
 		amountOffset = 25
 		coxaAngleOffsets = {
 			'1': -amountOffset,
@@ -270,33 +269,41 @@ class hexapodMotion:
 
 		
 		# check if walkAngle already in cache
-		cacheResult = self.getTibiaFemurWalkAnglesInCache(leg, coxaAngle)
+		cacheResult = self.getTibiaFemurWalkAnglesInCache(coxaAngle)
 		if cacheResult[0] != "error":
 			return cacheResult
 		
 		if self.walkSpeed != 0: log("tibiaFemurWalkAngles being calculated for leg: " + leg + " and coxaangle: " + str(coxaAngle))
 		
 		
-		# robotHeight and stanceWidth need to remain constant for fluid forward movement
-	
-		#t = time.time()
-		d = self.stanceWidth / cos(coxaAngle)
+		# constraints: robotHeight needs to remain constant and tibia tip at a fixed point on floor for fluid forward movement
+		d = self.stanceWidth / cos(coxaAngle) # the length needed so the tibia tip is along the line coinciding with the other tibia tips (parallel to movement direction) so the legs don't slip on the ground
+		
+		# the exact IK equation. x = femurAngle
 		def f(x):
-			eqns = [tibiaLen * cos(x[0] + x[1]) - femurLen * sin(x[0]) - self.robotHeight]
-			#eqns.append(-d + femurLen*cos(x[1])/cos(x[0]+x[1]) + self.robotHeight*tan(x[0]+x[1]))
-			eqns.append(femurLen * cos(x[0]) + tibiaLen * sin(x[0] + x[1]) - d)
+			eqns = (self.robotHeight + femurLen * math.sin(x)) ** 2 + (d - femurLen * math.cos(x)) ** 2 - tibiaLen ** 2
 			return eqns
 		
-		f_roots = fsolve(f, [self.femurStandStartAngle, self.tibiaStandStartAngle], xtol = 0.1) # initial guesses are just the initial values
-		#print time.time()-t
+		# approximate the femurAngle
+		femurAngle = scipy.optimize.newton(f, math.radians(self.femurStandStartAngle)) # make the initial guess the standing start angle
 		
-		# put in cache so dont have to recalculate
-		self.putTibiaFemurWalkAnglesInCache(leg, coxaAngle, f_roots)
+		# calculate exactly the tibiaAngle from the approximate femurAngle
+		tibiaAngle = math.acos( (self.robotHeight + femurLen * math.sin(femurAngle)) / tibiaLen ) - femurAngle
 		
-		return f_roots
+		# convert to degrees
+		femurAngle = math.degrees(femurAngle)
+		tibiaAngle = math.degrees(tibiaAngle)
+		
+		# put in cache so don't have to recalculate
+		self.putTibiaFemurWalkAnglesInCache(coxaAngle, [femurAngle, tibiaAngle])
+		
+		#print str(d) + " " + str(femurAngle) + " " + str(tibiaAngle)
+		return [femurAngle, tibiaAngle]
 			
 	# calculate the commanded servo angles
 	def walkServoAngles(self, leg):
+		# modify the walkAngles
+		self.legWalkAngles[leg] = self.legWalkAngles[leg] + (self.direction() * self.stepAngle)
 	
 		# var to hold the coxa, femur and tibia angles
 		angles = {}		
@@ -308,12 +315,16 @@ class hexapodMotion:
 		if self.legWalkAngles[leg] >= 0: m = 1
 		else: m = -1
 		
-		# if not in the powerstroke, execute a move so that it is
+		# if not in the powerstroke, reposition the leg so it is
 		if not ((m * 90) <= self.legWalkAngles[leg] <= (m * 270)):
-			self.legCommandLock[leg] = True # guarantee this function wont be called again for self.legCommandLockTime
-			self.timeUnlockLeg(leg)
+			self.legCommandLock[leg] = True # flag the leg as locked
+			
+			# on execution of legTimedUnlock the leg will unlock and reposition to floor
+			sleepTime = 2 * self.coxaWalkSweepAngle / self.servoMaxSpeed
+			thread.start_new_thread(self.legTimedUnlock, (leg, sleepTime,))
 			self.legWalkAngles[leg] = self.legWalkAngles[leg] + self.direction() * 180
 
+		# make sure walkAngle is always between 0-360
 		self.legWalkAngles[leg] = self.legWalkAngles[leg] % 360	
 			
 		# calculate the angles
@@ -334,27 +345,29 @@ class hexapodMotion:
 		return angles
 	
 	# lock leg angles from changing
-	def timeUnlockLeg(self, leg):
-		thread.start_new_thread(self.timeUnlockLeg_helper, (leg,))
-	def timeUnlockLeg_helper(self, leg):
-		time.sleep(self.legCommandLockTime)
+	def legTimedUnlock(self, leg, sleepTime):
+		# sleep to allow servo to get to beginning of powerstroke position
+		print "sleeping for" + str(sleepTime)
+		time.sleep(sleepTime)
+		
+		# unlock leg and execute another step so leg will move down to floor
 		self.legCommandLock[leg] = False
+		self.walkServoAngles(leg)
 	
 	# stand function
 	def stand(self):
-		if self.testMode == False:
-			for i in range(1, 7):
-				self.moveServoToAngle("coxa" + str(i), self.coxaStandStartAngle)
-				self.moveServoToAngle("femur" + str(i), self.femurStandStartAngle + 20)
-			 
-			time.sleep(1)
-			for i in range(1, 7):
-				self.moveServoToAngle("tibia" + str(i), self.tibiaStandStartAngle)
-			
-			time.sleep(1) 
-			for i in range(1, 7):
-				self.moveServoToAngle("femur" + str(i), self.femurStandStartAngle)
-			time.sleep(1)
+		for i in range(1, 7):
+			self.moveServoToAngle("coxa" + str(i), self.coxaStandStartAngle)
+			self.moveServoToAngle("femur" + str(i), self.femurStandStartAngle + 20)
+		 
+		time.sleep(0.4)
+		for i in range(1, 7):
+			self.moveServoToAngle("tibia" + str(i), self.tibiaStandStartAngle)
+		
+		time.sleep(0.4) 
+		for i in range(1, 7):
+			self.moveServoToAngle("femur" + str(i), self.femurStandStartAngle)
+		time.sleep(0.4)
 		
 	# walk function
 	def walk(self):
@@ -364,19 +377,15 @@ class hexapodMotion:
 		for i in range(1, 7): # leg loop
 			leg = str(i)
 			
-			# call only if leg is not locked and speed is nonzero
-			if self.legCommandLock[leg] == False:
-				# modify the walkAngles
-				self.legWalkAngles[leg] = self.legWalkAngles[leg] + (self.direction() * self.stepAngle)
-				
+			# call only if leg is not locked
+			if self.legCommandLock[leg] == False:				
 				# get the angles
 				angles = self.walkServoAngles(leg)
 
 				# move the servos
-				if self.testMode == False:
-					self.moveServoToAngle("coxa" + leg, angles["coxa"])
-					self.moveServoToAngle("femur" + leg, angles["femur"])
-					self.moveServoToAngle("tibia" + leg, angles["tibia"])
+				self.moveServoToAngle("coxa" + leg, angles["coxa"])
+				self.moveServoToAngle("femur" + leg, angles["femur"])
+				self.moveServoToAngle("tibia" + leg, angles["tibia"])
 
 		if self.testMode == True: print ""
 		time.sleep(self.stepTimeInterval * self.stepIntervalMultiplier())
