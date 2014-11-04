@@ -1,6 +1,6 @@
 <h1>Note: This project is a work in progress.</h1>
 <h2>About</h2>
-This project is based around Python and the <a href="http://en.wikipedia.org/wiki/Raspberry_Pi">Raspberry Pi</a>, a credit-card sized computer with GPIO, USB, 10/100 Ethernet and more. It is a 6-legged (hexapod) robot with 3 degrees of freedom per leg. Currently it can walk linearly, be controlled with a PS3 controller, stream 1080p30 video, talk via flite and an on-board speaker, detect objects with an ultrasonic sensor and collect acceleration data. Rotational movement, object recognition using the camera with <a href="http://opencv.org/">OpenCV</a>, full integration of all features and more are underway.</p>
+This project is based around Python and the <a href="http://en.wikipedia.org/wiki/Raspberry_Pi">Raspberry Pi</a>, a credit-card sized computer with GPIO, USB, 10/100 Ethernet and more. It is a 6-legged (hexapod) robot with 3 degrees of freedom per leg. Currently it can walk linearly, be controlled with a PS3 controller, stream 1080p30 video, talk via flite and an on-board speaker, detect objects with an ultrasonic sensor, detect solid-coloured objects with the camera and collect acceleration data. Additional movements, integration of all features and more are underway.</p>
 
 <h2>Hardware</h2>
 <ul>
@@ -32,7 +32,7 @@ The following modules should be installed using apt-get after installing <a href
 	<ul>
 		<li>Python</li>
 		<li><a href="http://www.festvox.org/flite/">flite</a> tts engine</li>
-		<li><a href="http://opencv.org/">OpenCV</a> for facial recognition (not yet implemented)</li>
+		<li><a href="http://picamera.readthedocs.org/en/release-1.8/">Picamera</a></li>
 		<li><a href="http://www.pygame.org">Pygame </a></li>
 		<li>Sixpair for pairing the PS3 controller to the bluetooth module and the <a href="http://qtsixa.sourceforge.net/">sixad</a> driver. <a href="http://booting-rpi.blogspot.ro/2012/08/dualshock-3-and-raspberry-pi.html">This</a> tutorial may be helpful. You may need to modify the sixad sourcecode and recompile as described <a href="http://www.raspberrypi.org/forums/viewtopic.php?f=78&t=16702&sid=1f1d82acca88f4ace5195643900b1123&start=29">here</a> in order for the controller to work.</li>
 	</ul>
