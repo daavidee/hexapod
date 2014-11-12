@@ -4,125 +4,149 @@ import numpy as np
 import Image
 import io
 import copy
+import sys
+
+# set recursion depth higher than the default of 1000. will avoid with tweaking later
+sys.setrecursionlimit(2000)
 
 
 imageParams = {
 	'width': 320,
 	'height': 240,
 
-	# the endpoints for the loop which adaptively changes
-	'col_max': 320,
-	'row_max': 240,
+	# the initial points for the pixel analysis loop
 	'startRow': 0,
 	'startCol': 0,
+	
+	'minSquareSearchSize': 6, # square search block in pixels 
 
 	# the imageParams['stream'] object to capture to
 	'stream': io.BytesIO()
 }
 
 
+# pixel test parameters
+pixelTestParams = {
+	0: { 'testVal': 85, 'dir': 1 }, # red pixel
+	1: { 'testVal': 85, 'dir': 1 }, # green pixel
+	2: { 'testVal': -60, 'dir': -1 } # blue pixel
+}
+numTests = len(pixelTestParams)
+testNum = 2 # keep track of which test failed. defaults to 2 (the requirement on the B pixel)
+
+
+# add all tested pixels to this array
+testedPixels = []
+
+# recursively test pixels until the wrong colour is found or end of image is reached
+def rDetectPixels(im, i, j):
+	if i >= imageParams['height']: return
+	if j >= imageParams['width']: return
+	if testPixel(im, i, j) == True:
+		im[i][j] = [0, 0, 0]
+		rDetectPixels(im, i, j - imageParams['minSquareSearchSize'] )
+		rDetectPixels(im, i, j + imageParams['minSquareSearchSize'] )
+		rDetectPixels(im, i - imageParams['minSquareSearchSize'], j)
+		rDetectPixels(im, i + imageParams['minSquareSearchSize'], j)
+	
+
+
+# increment to the next test in the dict
+def nextTestNum(x):
+	x += 1
+	if x == numTests: return 0
+	else: return x
+
+# test if pixel satisfies the pixelTestParams
+def testPixel(im, i, j):
+	'''
+	global testNum
+	if pixelTestParams[testNum]['dir'] * im[i][j][testNum] >= pixelTestParams[testNum]['testVal']: # test 1
+		testNum = nextTestNum(testNum)
+		if pixelTestParams[testNum]['dir'] * im[i][j][testNum] >= pixelTestParams[testNum]['testVal']: # test 2
+			testNum = nextTestNum(testNum)
+			if pixelTestParams[testNum]['dir'] * im[i][j][testNum] >= pixelTestParams[testNum]['testVal']: # test 3
+	'''
+	
+	if int(im[i][j][0]) - int(im[i][j][2]) > 80 and int(im[i][j][1]) - int(im[i][j][2]) > 80 : # test if it is not a proper shade
+		#im[i][j] = [0, 0, 0]
+		return True
+	#im[i][j] = [255, 255, 255]
+	return False
+		
+
+
 def processImage(imageParams):
-
-
+	
 	# rewind the imageParams['stream'] for reading
 	imageParams['stream'].seek(0)
 
 
-	# load the data in a three-dimensional array
+	# load the data to a numpy array
 	image = np.fromstring(imageParams['stream'].getvalue(), dtype=np.uint8).reshape((imageParams['height'], imageParams['width'], 3))
 	image2 = copy.deepcopy(image)
 
 
-
-
-	# pixel test parameters
-	pixelTestParams = {
-		0: { 'testVal': 100, 'dir': 1 }, # red pixel
-		1: { 'testVal': 100, 'dir': 1 }, # green pixel
-		2: { 'testVal': -60, 'dir': -1 } # blue pixel
-	}
-	numTests = len(pixelTestParams)
-
-	# increment to the next test in the dict
-	def nextTestNum(x):
-		x += 1
-		if x == numTests: return 0
-		else: return x
-
-		
-
 	t = time.time()
 
-	# add predictive startpoint for next image analyzed
-	# uses a predictive pixel test strategy to try and prevent needless testing in the next loop iteration
-
-	# scan the image
-	minSquareSearchSize = 6 # square search block in pixels 
-	numRowsScanned = 0 # this is so that we can start at an arbitrary row
-	detectedPoints = [] # the set of detected points
-	numPtsFound = 0 # length of detectedPoints
-	testNum = 2 # keep track of which test failed. defaults to 2 (the requirement on the B pixel)
-
-
-	numI = 0
-
-	rowOfLastFound = imageParams['height'] + 2 # if a set of points were found set this to the row number. when no points are found for x rows the loop will end
 	
+	# scan the image
+	numRowsScanned = 0 # this is so that we can start at an arbitrary row but still wrap around if necessary
+	detectedPoints = [] # the set of detected points satisfying the pixel criteria pixelTestParams
+
+
+
+	numI = 0 # number of tests performed
+
+
+	
+	# flag to break through all loops (will make into a function after)
+	bBreakLoop = False
+	
+	# loop to crudely find the object. will recursively identify all points after the object is found
 	i = imageParams['startRow']  # start row. this is so in successive frames we can start at a predicted row to reduce computation
-	while numRowsScanned < imageParams['row_max']:
+	while i < imageParams['height'] -1:
 		if i > imageParams['height']: i = 0 # wrap to the first row if the end was reached
 
 		ptsFoundCurrentRow = []
-		colOfLastFound = imageParams['width'] + 2
-		j = imageParams['startCol']
-		while j < imageParams['col_max']:
+		if i == imageParams['startRow']: j = imageParams['startCol']
+		else: j = 0
+		while j < imageParams['width']:
 			# perform the pixel colour tests
 			#numI += 1
-			image2[i][j] = [255, 255, 255]
-			if pixelTestParams[testNum]['dir'] * image[i][j][testNum] >= pixelTestParams[testNum]['testVal']: # test 1
-				testNum = nextTestNum(testNum)
-				if pixelTestParams[testNum]['dir'] * image[i][j][testNum] >= pixelTestParams[testNum]['testVal']: # test 2
-					testNum = nextTestNum(testNum)
-					if pixelTestParams[testNum]['dir'] * image[i][j][testNum] >= pixelTestParams[testNum]['testVal']: # test 3
-						if int(image[i][j][0]) - int(image[i][j][2]) > 80: # test if it is not a shade of yellow
-							ptsFoundCurrentRow.append(j)
-							if len(ptsFoundCurrentRow) == 3:
-								tmp = ptsFoundCurrentRow[0] - minSquareSearchSize
-								if tmp > 0: imageParams['startCol'] = tmp
-								else: imageParams['startCol'] = ptsFoundCurrentRow[0]
-							rowOfLastFound = i
-							colOfLastFound = j
-							#image[i][j] = [0, 0, 0]
-							image2[i][j] = [0, 0, 0]
-							detectedPoints.append([i, j])
-							numPtsFound = len(detectedPoints)
+
+			
+			if testPixel(image2, i, j) == True:
+				
+				detectedPoints.append([i, j])
+				ptsFoundCurrentRow.append(j)
+				if len(ptsFoundCurrentRow) == 3: # 3 consecutive points found, assume object is found
+					bBreakLoop = True
+					break
+				image2[i][j] = [0, 0, 0]
+
 						
-			if numPtsFound != 0 and (j - colOfLastFound) > 2 * minSquareSearchSize : # no points for 2 consecutive search cols. only care to find one object at a time so break the loop
-				tmp = j + minSquareSearchSize
-				if tmp < imageParams['width']: imageParams['col_max'] = tmp
-				else: imageParams['col_max'] = imageParams['width']
-				break 			
-			j += minSquareSearchSize
-		if numPtsFound != 0 and (i - rowOfLastFound) > 2 * minSquareSearchSize : break # no points for 2 consecutive search rows. only care to find one object at a time so break the loop
-		i += minSquareSearchSize
-		numRowsScanned += minSquareSearchSize
+			j += imageParams['minSquareSearchSize']
+			
+		if bBreakLoop: break
+		i += imageParams['minSquareSearchSize']
+		numRowsScanned += imageParams['minSquareSearchSize']
 		
-	#print numI
-
-
-	
-	if numPtsFound != 0:
-		# calculate approximate midpoint of balloon and the STD
+		
+	if len(detectedPoints) == 0: imageParams['startRow'] = 0
+	else:
+		
+		rDetectPixels(image2, i, j)
+		
+		
+		# calculate approximate midpoint of balloon and the standard deviation
 		mean = np.mean(detectedPoints, axis=0) # midpoint
 		print mean
 		std = np.std(detectedPoints, axis=0) # used to predict the start row/column for the next image
 
-		#imageParams['startRow'] = int(mean[0] - 3 * std[0])
-		#imageParams['startCol'] = int(mean[1] - 3 * std[1])
-		imageParams['startRow'] = 0
-		imageParams['startCol'] = 0
-		imageParams['col_max'] = imageParams['width']
-		imageParams['row_max'] = imageParams['height']
+		imageParams['startRow'] = int(mean[0])
+		imageParams['startCol'] = int(mean[1])
+		
 		if imageParams['startRow'] < 0: imageParams['startRow'] = 0
 		if imageParams['startCol'] < 0: imageParams['startCol'] = 0
 
@@ -134,12 +158,14 @@ def processImage(imageParams):
 	Image.fromarray(image2, 'RGB').save(str(time.time()) + ".png")
 
 
+# loop to keep taking pictures and analyzing them
 with picamera.PiCamera() as camera:
 	camera.resolution = (imageParams['width'], imageParams['height'])
 	camera.vflip = True # vertical flip
+	camera.exposure_mode = 'night'
 	#time.sleep(2)
 	#camera.capture_sequence(imageParams['stream']Gen(), 'rgb', use_video_port=True) # capture in rgb format
-	for filename in camera.capture_continuous(imageParams['stream'], 'rgb', use_video_port=True):
+	for stream in camera.capture_continuous(imageParams['stream'], 'rgb', use_video_port=True):
 		processImage(imageParams)
-		#time.sleep(1)
+		time.sleep(0.01)
 

@@ -38,7 +38,7 @@ def calcfollowDistance(direction):
 
 # debugging
 #hexapod.walkSpeed = 0.3
-hexapod.testMode = True	
+#hexapod.testMode = True
 	
 
 # stand up

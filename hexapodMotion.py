@@ -124,7 +124,7 @@ class hexapodMotion:
 	
 	walkResolution = 60 # number of steps for one full walk cycle. some of these are technically "skipped" when repositioning for powerstroke
 	stepAngle = 360 / walkResolution # degrees in each small step in the cycle
-	coxaWalkSweepAngle = 25 # half of the total sweep angle for each leg
+	coxaWalkSweepAngle = 22 # half of the total sweep angle for each leg
 	
 
 	# servo takes 0.22s to go 60 degrees @ 6V. self.walkSpeed depends on this value
@@ -166,12 +166,12 @@ class hexapodMotion:
 		
 	# the initial offsets in the walk angle between legs
 	def generateLegWalkOffsets(self, legWalkAngles):
-		legWalkAngles['1'] = 120
-		legWalkAngles['2'] = 240
-		legWalkAngles['3'] = 0
+		legWalkAngles['1'] = 150
+		legWalkAngles['2'] = 210
+		legWalkAngles['3'] = 90
 		legWalkAngles['4'] = 180
-		legWalkAngles['5'] = 60
-		legWalkAngles['6'] = 300
+		legWalkAngles['5'] = 120
+		legWalkAngles['6'] = 240
 		
 	def moveServoToAngle(self, legSection, angle):
 		servoChan = servoChans[legSection]
@@ -256,7 +256,7 @@ class hexapodMotion:
 	# when coxa angle changes during walking, these are the femur and tibia angles to maintain constant robot height and position of tibia tip on floor without slipping
 	def tibiaFemurWalkAngles(self, leg, coxaAngle):
 		# because only legs 2 and 5 have tibias in line with the femur pivot, these offsets are needed to "fudge" the math for the other legs which are offset...will adjust later
-		amountOffset = 25
+		amountOffset = 20
 		coxaAngleOffsets = {
 			'1': -amountOffset,
 			'2': 0,
@@ -347,7 +347,7 @@ class hexapodMotion:
 	# lock leg angles from changing
 	def legTimedUnlock(self, leg, sleepTime):
 		# sleep to allow servo to get to beginning of powerstroke position
-		print "sleeping for" + str(sleepTime)
+		#print "sleeping for" + str(sleepTime)
 		time.sleep(sleepTime)
 		
 		# unlock leg and execute another step so leg will move down to floor
